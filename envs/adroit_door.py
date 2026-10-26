@@ -22,7 +22,7 @@ class MyDoorEnv(MujocoEnv,EzPickle):
     def __init__(self, reward_type: str = "dense", **kwargs):
         xml_file_path = (
             Path(__file__).resolve().parents[2]
-            / "gymnasium_robotics"
+            / "imitate"
             / "envs"
             / "assets"
             / "adroit_hand"

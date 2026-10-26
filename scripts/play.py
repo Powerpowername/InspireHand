@@ -6,22 +6,24 @@ import gymnasium as gym
 import imageio
 from stable_baselines3 import PPO
 
-from imitate.envs.register import register_envs
 import sys
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from envs.register import register_envs
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=["human", "video"], default="human")
-    parser.add_argument("--model", default="imitate/runs/ppo/final.zip")
+    parser.add_argument("--model", default="/runs/ppo/final.zip")
     parser.add_argument("--episodes", type=int, default=100)
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--out", default="imitate/runs/ppo/videos")
+    parser.add_argument("--out", default="/runs/ppo/videos")
+    parser.add_argument("--pro", type=str, default="adroit")
+
     args = parser.parse_args()
 
-    register_envs()
+    register_envs("adroit")
     render_mode = "human" if args.mode == "human" else "rgb_array"
-    env = gym.make("MyDoor-v0", render_mode=render_mode)
+    env = gym.make("AdroitHammer-v0", render_mode=render_mode)
     model = PPO.load(args.model, device="cpu")
 
     out_dir = Path(args.out)

@@ -2,19 +2,22 @@
 import argparse
 from pathlib import Path
 import sys
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import gymnasium as gym
 
-from imitate.envs.register import register_envs
+from envs.register import register_envs
 EPOCHS = 500
 # 每个 epoch 训练多少步，PPO 会把这些步分成 mini-batch 训练。这里设置为 16 个 env，每个 env 2048 步，总共 32768 步。
 STEPS_PER_EPOCH = 2048 * 16      # 32768
 
-def make_env(rank: int, seed: int = 0):
+def make_env(rank: int, seed: int = 0,pro: str = ""):
     def _init():
-        register_envs()                 # 子进程里也要注册
-        env = gym.make("MyDoor-v0")     # 自带 TimeLimit(200)
+        register_envs(pro)                 # 子进程里也要注册
+        if pro == "adroit":
+            env = gym.make("AdroitHammer-v0")     # 自带 TimeLimit(200)
+        elif pro == "mydoor":
+            env = gym.make("MyDoor-v0")     # 自带 TimeLimit(200)
         env.reset(seed=seed + rank)
         return env
 
@@ -30,11 +33,12 @@ if __name__ == "__main__":
     parser.add_argument("--n-envs", type=int, default=16)
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--pro", type=str, default="adroit")
     args = parser.parse_args()
-    save_dir = Path("imitate/runs/ppo")
+    save_dir = Path("/runs/ppo")
     save_dir.mkdir(parents=True, exist_ok=True)
     # SubprocVecEnv创建训练子进程需要的函数
-    venv = SubprocVecEnv([make_env(i, args.seed) for i in range(args.n_envs)])
+    venv = SubprocVecEnv([make_env(i, args.seed, args.pro) for i in range(args.n_envs)])
     # VecMonitor包装器可以记录每个子进程的 episode reward 和 episode length
     venv = VecMonitor(venv)
 
